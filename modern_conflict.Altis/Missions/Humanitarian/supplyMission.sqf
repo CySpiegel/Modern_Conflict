@@ -76,8 +76,3 @@ sleep 0.1;
 sleep 5;
 ["supplyDrop",true] call BIS_fnc_deleteTask;
 supplyMarker = "";
-
-
-
-
-//};
