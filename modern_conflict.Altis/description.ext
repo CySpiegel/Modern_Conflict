@@ -15,11 +15,12 @@ class Header
 	playerCountMultipleOf = 1;
 };
 
-
+// AI Systems
 aiKills = 0;
 briefing = 1;
 debriefing = 1;
 disabledAI = 1;
+joinUnassigned = 1;
 
 enableDebugConsole = 1;
 
@@ -35,7 +36,6 @@ reviveDelay = 15;
 reviveForceRespawnDelay = 3;
 reviveBleedOutDelay = 180;
 
-joinUnassigned = 1;
 // Garbage System Settings
 corpseManagerMode = 1;
 corpseLimit = 30;
