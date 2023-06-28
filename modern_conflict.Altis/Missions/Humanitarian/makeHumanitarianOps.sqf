@@ -110,6 +110,7 @@ fn_spawnHumanitarianSupplyMission = {
 	supplyMarker = "";
 };
 
+// How to call this mission directly
 // [[],"Missions\Humanitarian\initmissionAir.sqf"] remoteExec ["BIS_fnc_execVM", 0]; 
 _missionDetails = switch (_missionType) do {
 	case "HumanitarianSupply": {call fn_spawnHumanitarianSupplyMission;};
