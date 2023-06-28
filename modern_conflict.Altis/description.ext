@@ -51,6 +51,7 @@ minPlayerDistance = 300;
 class CfgFunctions
 {
 	#include "ASORVS\cfgfunctions.hpp"
+	#include "Missions\Functions\cfgFunctions.hpp"
 };
 
 class CfgNotifications
