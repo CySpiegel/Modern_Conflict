@@ -33,7 +33,7 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Mission System/Scratch Code.md",
+                "file": "Mission System/Mission Types.md",
                 "mode": "source",
                 "source": false
               }
@@ -106,7 +106,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Mission System/Scratch Code.md",
+                "file": "Mission System/Mission Types.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -123,7 +123,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "Mission System/Scratch Code.md",
+                "file": "Mission System/Mission Types.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -146,7 +146,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "Mission System/Scratch Code.md"
+                "file": "Mission System/Mission Types.md"
               }
             }
           }
@@ -167,10 +167,11 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "a88788f43c8ff5a2",
+  "active": "134f5367ef9ef522",
   "lastOpenFiles": [
+    "Scratch Codebook",
+    "Scratch Code.md",
     "Mission System/Mission Types.md",
-    "Mission System/Scratch Code.md",
     "Mission System/Mission Execution.md",
     "Mission System"
   ]
