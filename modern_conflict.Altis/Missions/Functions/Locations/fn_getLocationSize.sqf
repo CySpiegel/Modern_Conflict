@@ -27,6 +27,7 @@ switch (_locationType) do {
 	case "NameVillage": { _locationRadius = 150;};
 	case "NameCity": { _locationRadius = 300;};
 	case "NameCityCapital": { _locationRadius = 1000;};
+	case "NameLocal": { _locationRadius = 200; }
 };
 
 _locationRadius;
