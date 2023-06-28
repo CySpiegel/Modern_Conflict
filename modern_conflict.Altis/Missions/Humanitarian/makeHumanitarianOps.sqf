@@ -81,7 +81,8 @@ fn_spawnHumanitarianSupplyMission = {
 
 	//succeed the task
 	["supplyDrop", "SUCCEEDED",true] call BIS_fnc_taskSetState;
-	[master, 0.5] remoteExec ["addCuratorPoints", 0, false];
+	// I do not remember what this curater point mission does?
+	// [master, 0.5] remoteExec ["addCuratorPoints", 0, false];
 	[getMarkerPos supplyMarker, [side player], -20] call ALIVE_fnc_updateSectorHostility;
 	// Will add funds to the acex fortification system
 	[west, 1000, false] call acex_fortify_fnc_updateBudget;
