@@ -4,43 +4,18 @@
     "type": "split",
     "children": [
       {
-        "id": "cd9baa5ec966a73a",
+        "id": "668f2e07246e3195",
         "type": "tabs",
         "children": [
           {
-            "id": "79e649a1358d5b79",
+            "id": "9d8cd613dd2e53be",
             "type": "leaf",
             "state": {
               "type": "empty",
               "state": {}
             }
-          },
-          {
-            "id": "208527eb790a8768",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "Mission System/Mission Execution.md",
-                "mode": "source",
-                "source": false
-              }
-            }
-          },
-          {
-            "id": "a88788f43c8ff5a2",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "Mission System/Mission Types.md",
-                "mode": "source",
-                "source": false
-              }
-            }
           }
-        ],
-        "currentTab": 2
+        ]
       }
     ],
     "direction": "vertical"
@@ -106,7 +81,6 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Mission System/Mission Types.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -123,7 +97,6 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "Mission System/Mission Types.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -145,9 +118,7 @@
             "type": "leaf",
             "state": {
               "type": "outline",
-              "state": {
-                "file": "Mission System/Mission Types.md"
-              }
+              "state": {}
             }
           }
         ]
@@ -167,12 +138,13 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "134f5367ef9ef522",
+  "active": "9d8cd613dd2e53be",
   "lastOpenFiles": [
-    "Scratch Codebook",
-    "Scratch Code.md",
-    "Mission System/Mission Types.md",
     "Mission System/Mission Execution.md",
+    "Scratch Codebook/Scratch Code.md",
+    "BiKey Functions.md",
+    "Mission System/Mission Types.md",
+    "Scratch Codebook",
     "Mission System"
   ]
 }

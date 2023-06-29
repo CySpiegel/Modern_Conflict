@@ -9,7 +9,7 @@ Humanitarian Aid
 Infantry Combat
 ```
 - Clear out hostile location
-- Capture HVT Target
+- Capture/Rescue HVT Target
 - Intercept Convoy
 - Casevac SPECOPS Team member
 - Repair Disabled Vehicle or Tow back to base

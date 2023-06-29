@@ -25,3 +25,16 @@ call compile preprocessFileLineNumbers "Tasking\removeTasks.sqf";
 if (isServer) then {
     //[] call compileFinal preprocessFileLineNumbers "Scripts\server\init_server.sqf";
 };
+
+// Make AI Regroup with player upon reconnecting to server and teleport back to there location
+waituntil {(player getvariable ["alive_sys_player_playerloaded",false])};
+sleep 2;
+{
+	if !(isPlayer _x) then {
+		if !(_x getVariable ["Persistent_Teleport", false]) then {
+			_x setPos (getPos player);
+			_x setVariable ["Persistent_Teleport", true, true];
+			sleep .5;
+		};
+	};
+} forEach units group player;
