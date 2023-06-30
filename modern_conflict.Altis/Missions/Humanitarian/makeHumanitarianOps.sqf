@@ -18,16 +18,12 @@ fn_spawnHumanitarianSupplyMission = {
 		["HQ", "You already have 1 active Aid mission"] spawn BIS_fnc_showSubtitle;
 	};
 
-
 	_locationList = [CENTER, ["NameVillage","NameCity","NameCityCapital"], 25000] call CYS_fnc_getLocations; 
-
 	_randLocation = _locationList call BIS_fnc_selectRandom; 
-
 	_areaRadius = [_randLocation] call CYS_fnc_getLocationSize;
-
 	_areaLocation = position _randLocation;    
-	
-	_target = [_areaLocation, 1, _areaRadius, 3, 0, 20, 0] call BIS_fnc_findSafePos; 
+	_target = ["nearCityButAwayFromBuildings",_areaLocation, _areaRadius] call CYS_fn_getSafePos;
+
 	supplyMarker = createMarker ["deliveryLocation",_target];   
 	supplyMarker setMarkerShape "ELLIPSE";   
 	supplyMarker setMarkerSize [_completionRadius,_completionRadius];   

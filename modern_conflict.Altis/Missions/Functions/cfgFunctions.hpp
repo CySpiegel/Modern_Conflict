@@ -6,5 +6,6 @@ class CYS
 		file = "Missions\Functions\Locations";
 		class getLocations {};
 		class getLocationSize {};
+		class getSafePos {};
 	};
 };
