@@ -4,19 +4,15 @@
     "type": "split",
     "children": [
       {
-        "id": "668f2e07246e3195",
+        "id": "d1172f97c5044019",
         "type": "tabs",
         "children": [
           {
-            "id": "9d8cd613dd2e53be",
+            "id": "7176378b03fd52d4",
             "type": "leaf",
             "state": {
-              "type": "markdown",
-              "state": {
-                "file": "Mission System/Mission Types.md",
-                "mode": "source",
-                "source": false
-              }
+              "type": "empty",
+              "state": {}
             }
           }
         ]
@@ -85,7 +81,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Mission System/Mission Types.md",
+                "file": "Codebook/Scratch Code.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -102,7 +98,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "Mission System/Mission Types.md",
+                "file": "Codebook/Scratch Code.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -125,7 +121,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "Mission System/Mission Types.md"
+                "file": "Codebook/Scratch Code.md"
               }
             }
           }
@@ -146,13 +142,14 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "9d8cd613dd2e53be",
+  "active": "134f5367ef9ef522",
   "lastOpenFiles": [
-    "Mission System/Mission Execution.md",
-    "Scratch Codebook/Scratch Code.md",
-    "BiKey Functions.md",
+    "Codebook/Interesting code snips.md",
+    "Codebook/Scratch Code.md",
     "Mission System/Mission Types.md",
-    "Scratch Codebook",
+    "Mission System/Mission Execution.md",
+    "BiKey Functions.md",
+    "Codebook",
     "Mission System"
   ]
 }

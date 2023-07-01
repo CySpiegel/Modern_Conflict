@@ -6,7 +6,7 @@ Humanitarian Aid
 - Casevac Civilians
 ```
 
-Infantry Combat
+Ground Combat Element
 ```
 - Clear out hostile location
 - Capture/Rescue HVT Target

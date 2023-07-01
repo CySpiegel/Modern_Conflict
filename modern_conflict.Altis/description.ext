@@ -36,17 +36,6 @@ reviveDelay = 15;
 reviveForceRespawnDelay = 3;
 reviveBleedOutDelay = 180;
 
-// Garbage System Settings
-// corpseManagerMode = 1;
-// corpseLimit = 30;
-// corpseRemovalMinTime = 60;
-// corpseRemovalMaxTime = 120;
-// wreckManagerMode = 1;
-// wreckLimit = 16;
-// wreckRemovalMinTime = 300;
-// wreckRemovalMaxTime = 900;
-// minPlayerDistance = 300;
-
 
 class CfgFunctions
 {
