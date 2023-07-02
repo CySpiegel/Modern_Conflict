@@ -5,7 +5,7 @@
 
 author = "Cytreen Spiegel";
 onLoadName   = "Modern Conflict";
-onLoadMission = "Welcome to the Altis";
+onLoadMission = "Welcome to War";
 
 class Header
 {

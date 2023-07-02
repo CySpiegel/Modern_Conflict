@@ -9,10 +9,10 @@ if (_setDaytime > -1) then {
 };
 
 // If SandStorms are set then execute sandstorm systems
-// if(_cys_SandStorm_max > 0) then 
-// {
-//     [0, _cys_SandStorm_max, 0] execvm "ROS_Sandstorm\scripts\ROS_Sandstorm_Scheduler.sqf";
-// };
+if(_cys_SandStorm_max > 0) then 
+{
+    [0, _cys_SandStorm_max, 0] execvm "ROS_Sandstorm\scripts\ROS_Sandstorm_Scheduler.sqf";
+};
 
 // Start Task Removal System for custom missions
 call compile preprocessFileLineNumbers "Tasking\removeTasks.sqf";
@@ -23,7 +23,7 @@ call compile preprocessFileLineNumbers "Tasking\removeTasks.sqf";
 
 // Compiles the function for showing server FPS on in game map
 if (isServer) then {
-    //[] call compileFinal preprocessFileLineNumbers "Scripts\server\init_server.sqf";
+    [] call compileFinal preprocessFileLineNumbers "Scripts\server\init_server.sqf";
 };
 
 // Make AI Regroup with player upon reconnecting to server and teleport back to there location
