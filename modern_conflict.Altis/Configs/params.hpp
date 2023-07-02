@@ -1,10 +1,10 @@
 class Params {
 	class cys_save_interval
 	{
-		title = "Server Auto Save";
+		title = "Server Auto Save (Does not do a Full Save, User Server Save & Exit)";
 		texts[] = {"Disable Auto Save", "Every 1 Hour", "Every 2 Hours", "Every 3 Hours"};
 		values[] = {-1, 3600, 7200, 10800};
-		default = 3600;
+		default = 10800;
 	};
 	class cys_Daytime
 	{
@@ -17,40 +17,20 @@ class Params {
 	class cys_timeMultiplier
 	{
 		title = "Time Acceleration";
-		texts[] = {"Normal 1:1","2x","4x"};
+		texts[] = {"24hr Day","12hr Day","6hr Day"};
 		values[] = {1,2,4};
-		default = 1;
+		default = 4;
 		function = "BIS_fnc_paramTimeAcceleration";
 	};
-	class cys_budget_group {
-		title = "Budget System Settings";
-		texts[] = {""};
-		values[] = {1};
-		default = 0;
-	};
-	class cys_budget_start {
-		title = "			Initial Budget";
-		texts[] = {"Used Saved Budget", "100","500","1000","5000","10000","50000"};
-		values[] = {1,100,500,1000,5000,10000,50000};
-		default = 1;
-	};
-	class cys_vechile_cost {
-		title = "			Vehicle Cost";
-		texts[] = {"100","200","300","400","500","1000"};
-		values[] = {100,200,300,400,500,1000};
-		default = 100;
-	};
-	class cys_vechile_refund_allowed {
-		title = "			Allowed Vehicle Refund Worth";
-		texts[] = {"100","200","300","400","500","1000"};
-		values[] = {100,200,300,400,500,1000};
-		default = 100;
-	};
-	class cys_vechile_refund_scrap {
-		title = "			Scrap Vehicle Worth (Vehicles not in approved refund list)";
-		texts[] = {"100","200","300","400","500","1000"};
-		values[] = {100,200,300,400,500,1000};
-		default = 100;
+
+	
+	class cys_SandStorm_max
+	{
+		title = "Maximum Number of Sand Storms per Day/Night Cycle (Time Acceleration Apply)";
+		texts[] = {"None","1","2","3","4","5","6","7","8","9","10"};
+		values[] = {0,1,2,3,4,5,6,7,8,9,10};
+		default = 2;
+		function = "BIS_fnc_paramTimeAcceleration";
 	};
 
 	class cys_playerCap_systems {
@@ -71,32 +51,30 @@ class Params {
 		values[] = {0,5,10,15,20,100};
 		default = 5;
 	};
-	// class cys_guilt_chance {
-	// 	title = "Guilt & Remembrance Mission Probability";
-	// 	texts[] = {"Disabeld","10%","20%","30%","40%","50%","60%","70%","80%","90%","100%"};
-	// 	values[] = {0,10,20,30,40,50,60,70,80,90,100};
-	// 	default = 30;
-	// };
-		class cys_ambiant_civilian_driving {
-		title = "Ambiant Drivers Limit";
-		texts[] = {"Disabeld","5","10","15","20"};
-		values[] = {0,5,10,15,20};
+
+	class cys_enigma_systems {
+		title = "Civilian Traffic System";
+		texts[] = {"Disable", "Enable"};
+		values[] = {0, 1};
+		default = 1;
+	};
+	class cys_ambiant_civilian_driving {
+		title = "			Ambiant Drivers Limit";
+		texts[] = {"Disabeld","2","3","5","10","15","20"};
+		values[] = {0,2,3,5,10,15,20};
 		default = 10;
 	};
-
 	class cys_ambiant_enemy_driving {
 		title = "Ambiant Enemy Drivers Limit";
-		texts[] = {"Disabeld","3","5","10","15","20"};
-		values[] = {0,3,5,10,15,20};
+		texts[] = {"Disabeld","1","2","3","5"};
+		values[] = {0,1,2,3,5};
 		default = 3;
 	};
-
-	
-	class cys_traffic_headless {
-		title = "Ambiant Drivers Headless Client (only use if HC1 is connected)";
+	class cys_traffic_headless 
+	{
+		title = "			Ambiant Drivers Headless Client (only use if HC1 is connected)";
 		texts[] = {"Disabeld","Enabled";};
 		values[] = {0,1};
-		default = 0;
-	};
-	
+		default = 1;
+	};	
 };

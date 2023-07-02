@@ -1,8 +1,11 @@
 #include "ASORVS\menu.hpp"
 #include "BRS\defines.hpp"
 #include "BRS\dialogs.hpp"
+#include "KPGUI\KPGUI_defines.hpp"
+#include "KPCF\ui\KPCF_dialog.hpp"
 #include "Configs\params.hpp"
 
+// Autorship
 author = "Cytreen Spiegel";
 onLoadName   = "Modern Conflict";
 onLoadMission = "Welcome to War";
@@ -50,5 +53,6 @@ class CfgNotifications
 
 class CfgSounds
 {
+	#include "Sounds\config.hpp"
 	#include "ROS_sandstorm\config.hpp"
 }

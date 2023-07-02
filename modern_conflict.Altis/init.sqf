@@ -1,17 +1,23 @@
 enableSaving [false,false];
 
-
-
-// Sets the mission start time from the in game parameters
+/*
+	Getting mission parameters for varius systems
+*/
 private _setDaytime = ["cys_Daytime", -1] call BIS_fnc_getParamValue;
 if (_setDaytime > -1) then {
     _setDaytime call  BIS_fnc_paramDaytime;
 };
 
-// If SandStorms are set then execute sandstorm systems
+private _cys_SandStorm_max = ["cys_Daytime", -1] call BIS_fnc_getParamValue;
 if(_cys_SandStorm_max > 0) then 
 {
     [0, _cys_SandStorm_max, 0] execvm "ROS_Sandstorm\scripts\ROS_Sandstorm_Scheduler.sqf";
+};
+
+// Get parameter for Civilian traffic enable/disable
+private _enableTraffic = ["cys_enigma_systems", 0] call BIS_fnc_getParamValue;
+if(_enableTraffic > 0) then{
+    call compile preprocessFileLineNumbers "Engima\Traffic\Init.sqf";
 };
 
 // Start Task Removal System for custom missions
