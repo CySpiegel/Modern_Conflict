@@ -8,21 +8,45 @@
 
 private ["_parameters"];
 
-private _civilianVehicLeLimit = ["cys_ambiant_civilian_driving", 1] call BIS_fnc_getParamValue;
+private _cys_ambiant_civilian_debug = ["cys_ambiant_civilian_debug", 0] call BIS_fnc_getParamValue;
 private _enemyVehicLeLimit = ["cys_ambiant_enemy_driving", 1] call BIS_fnc_getParamValue;
+private _civilianVehicLeLimit = ["cys_ambiant_civilian_driving", 1] call BIS_fnc_getParamValue;
+
+if(_cys_ambiant_civilian_debug == 1) then {
+	_cys_ambiant_civilian_debug = true;
+};
 
 // Set traffic parameters.
 _civ_parameters = [
 	["SIDE", civilian],
-	["VEHICLES", ["CFP_C_ASIA_Datsun_Pickup_01", "CFP_C_ASIA_Land_Rover_01", "CFP_C_ASIA_MB_4WD_01", "CFP_C_ASIA_Offroad_01", "CFP_C_ASIA_Praga_V3S_01", "CFP_C_ASIA_Skoda_Octavia_01", "CFP_C_ASIA_Ural_01", "CFP_C_ASIA_UAZ_01", "CFP_C_ASIA_SUV_01", "d3s_zil_130_04", "d3s_zil_130_05", "d3s_zil_131_4", "d3s_zil_130_07", "d3s_actros_14_giga", "d3s_maz_7429"]],
+	["VEHICLES", ["C_Van_01_fuel_F", 
+				"C_Hatchback_01_F", 
+				"C_Hatchback_01_sport_F", 
+				"C_Offroad_02_unarmed_F", 
+				"C_Truck_02_fuel_F", 
+				"C_Truck_02_box_F", 
+				"C_Truck_02_transport_F", 
+				"C_Truck_02_covered_F", 
+				"C_Offroad_01_F", 
+				"C_Offroad_01_comms_F", 
+				"C_Offroad_01_repair_F", 
+				"C_Quadbike_01_F", 
+				"C_SUV_01_F", 
+				"C_Tractor_01_F", 
+				"C_Van_01_transport_F", 
+				"C_Van_01_box_F", 
+				"C_Van_02_medevac_F", 
+				"C_Van_02_vehicle_F", 
+				"C_Van_02_service_F", 
+				"C_Van_02_transport_F"]],
 	["VEHICLES_COUNT", _civilianVehicLeLimit],
 	["MIN_SPAWN_DISTANCE", 800],
 	["MAX_SPAWN_DISTANCE", 2500],
 	["MIN_SKILL", 0.4],
 	["MAX_SKILL", 0.6],
-	["AREA_MARKER", "mcaa"],
+	["AREA_MARKER", "civiliantraffic_1"],
 	["HIDE_AREA_MARKER", true],
-	["DEBUG", false]
+	["DEBUG", _cys_ambiant_civilian_debug]
 ];
 
 
@@ -37,7 +61,7 @@ _enemy_parameters = [
 	["MAX_SKILL", 0.6],
 	["AREA_MARKER", "patroll"],
 	["HIDE_AREA_MARKER", true],
-	["DEBUG", false]
+	["DEBUG", _cys_ambiant_civilian_debug]
 ];
 
 // Start an instance of the traffic

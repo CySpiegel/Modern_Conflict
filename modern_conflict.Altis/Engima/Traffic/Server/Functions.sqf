@@ -12,7 +12,8 @@ ENGIMA_TRAFFIC_CalculatePlayerMarkerCoverage = {
 	private _sumCoveredShare = 0;
 	
 	private _distanceToMarker = _playerPos distance2D (getMarkerPos _marker);
-	private _avgMarkerRadius = (((getMarkerSize _marker) select 0) + ((getMarkerSize _marker) select 1)) / 2;
+	private _markerSize = getMarkerSize _marker;
+	private _avgMarkerRadius = ((_markerSize select 0) + (_markerSize select 1)) / 2;
 	private _coveredShare = 0;
 	
 	// If the marker is covered at all
@@ -86,7 +87,9 @@ ENGIMA_TRAFFIC_CalculateRoadWidth = {
 	
 	if ( count _connectedRoads > 0 ) then {
 		_nextNode = _connectedRoads select 0;
-		_dir = [ getPos _roadSegment, getPos _nextNode ] call BIS_fnc_dirTo;
+		_roadSegmentPos = getPos _roadSegment;
+		_nextNodePos = getPos _nextNode;
+		_dir = [_roadSegmentPos, _nextNodePos] call BIS_fnc_dirTo;
 	};
 	
 	_dir = _dir + 90;

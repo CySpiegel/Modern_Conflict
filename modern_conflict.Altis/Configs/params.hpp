@@ -65,7 +65,7 @@ class Params {
 		default = 10;
 	};
 	class cys_ambiant_enemy_driving {
-		title = "Ambiant Enemy Drivers Limit";
+		title = "			Ambiant Enemy Drivers Limit";
 		texts[] = {"Disabeld","1","2","3","5"};
 		values[] = {0,1,2,3,5};
 		default = 3;
@@ -73,6 +73,13 @@ class Params {
 	class cys_traffic_headless 
 	{
 		title = "			Ambiant Drivers Headless Client (only use if HC1 is connected)";
+		texts[] = {"Disabeld","Enabled";};
+		values[] = {0,1};
+		default = 1;
+	};	
+		class cys_ambiant_civilian_debug 
+	{
+		title = "			Ambiant Drivers Debug";
 		texts[] = {"Disabeld","Enabled";};
 		values[] = {0,1};
 		default = 1;

@@ -11,8 +11,12 @@
             "id": "7176378b03fd52d4",
             "type": "leaf",
             "state": {
-              "type": "empty",
-              "state": {}
+              "type": "markdown",
+              "state": {
+                "file": "Codebook/Scratch Code.md",
+                "mode": "source",
+                "source": false
+              }
             }
           }
         ]
@@ -142,12 +146,12 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "134f5367ef9ef522",
+  "active": "7176378b03fd52d4",
   "lastOpenFiles": [
+    "Mission System/Mission Execution.md",
+    "Mission System/Mission Types.md",
     "Codebook/Interesting code snips.md",
     "Codebook/Scratch Code.md",
-    "Mission System/Mission Types.md",
-    "Mission System/Mission Execution.md",
     "BiKey Functions.md",
     "Codebook",
     "Mission System"
