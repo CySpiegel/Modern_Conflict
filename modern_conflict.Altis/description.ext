@@ -42,6 +42,7 @@ reviveBleedOutDelay = 180;
 
 class CfgFunctions
 {
+	#include "KPCF\KPCF_functions.hpp"
 	#include "ASORVS\cfgfunctions.hpp"
 	#include "Missions\Functions\cfgFunctions.hpp"
 };
@@ -53,6 +54,8 @@ class CfgNotifications
 
 class CfgSounds
 {
-	#include "Sounds\config.hpp"
+	//#include "Sounds\config.hpp"
 	#include "ROS_sandstorm\config.hpp"
+	#include "ROS_PlaneRepair\config.hpp"
+	#include "ROS_HeliRepair\config.hpp"
 }

@@ -1,4 +1,3 @@
-//Ros Sandstorm sounds
 class sswindloop {
 	name="sswindloop";
 	sound[]={"ROS_sandstorm\sound\sswindloop.ogg", 2,1};
@@ -178,4 +177,4 @@ class tincan7 {
 	name="tincan7";
 	sound[]={"ROS_sandstorm\sound\tincan7.ogg", 2,1};
 	titles[] = {};
-};
+};		

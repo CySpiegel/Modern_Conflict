@@ -22,7 +22,8 @@ fn_spawnHumanitarianSupplyMission = {
 	_randLocation = _locationList call BIS_fnc_selectRandom; 
 	_areaRadius = [_randLocation] call CYS_fnc_getLocationSize;
 	_areaLocation = position _randLocation;    
-	_target = ["generalArea",_areaLocation, _areaRadius] call CYS_fnc_getSafePos;
+	//_target = ["generalArea",_areaLocation, _areaRadius] call CYS_fnc_getSafePos;
+	_target = [_areaLocation, 1, _areaRadius, 3, 0, 20, 0] call BIS_fnc_findSafePos;
 
 	supplyMarker = createMarker ["deliveryLocation",_target];   
 	supplyMarker setMarkerShape "ELLIPSE";   

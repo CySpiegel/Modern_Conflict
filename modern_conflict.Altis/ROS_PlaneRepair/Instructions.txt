@@ -1,0 +1,38 @@
+ROS Plane repair v1.5 - by RickOShay
+
+Supports all planes in Arma 3 / DLCs / RHS / SOG
+Plane must have hitpoints - most CUP planes are therefore not supported.
+Works with ROS Heli Repair.
+
+LEGAL STUFF
+Credit must be given in your mission and on the Steam Workshop if this script is used in any mission or
+derivative works. There are three dependent scripts: ROS_PlaneRepair.sqf, ROS_WelderPlane.sqf, ROSWavein.sqf.
+They must be kept together.
+
+USAGE:
+Recommended - copy the demo hangar including the props and units and helipad etc. (Hangar requires SOG CDLC) into your mission or save as Composition - note you will need the ROS_PlaneRepair folder and CfgSounds entries in description.ext as well.
+
+If not using the hangar - in the editor drop down a square helipad where the plane will be repaired.
+You must use the large square pad - and make sure its direction points to the wavein unit (see ROS_waveinplane script header).
+Likewise make sure the wavein unit points to the center of the helipad. The wavein unit must be at least 30m directly behind the the helipad.
+Place a Repair AI unit 30m behind the helipad (from helipad center) facing the helipad in the direction of incoming planes
+and ~3m to the LHS of the wavein unit.
+Repair unit must be in his own group and be a minimum of 30m from the helipad.
+
+👨 repair unit 👨 wavein unit
+
+               ↑ 30m
+
+               □ helipad center  → 25m ⛟ (auto spawned fuel truck, refueler & fuel pipe - see options below)
+
+               ↑
+               🛧 inbound plane
+
+Place the following line in the Repair units init field:
+[this] execvm "ROS_PlaneRepair\scripts\ROS_PlaneRepair.sqf";
+
+Copy the ROS_PlaneRepair folder to your mission root.
+Add the sound classes from the provided description.ext to Cfg_Sound in your description.ext.
+
+For added effect use the ROS_wavein.sqf script to have a unit wave in the taxiing plane.
+See that included script's header for instructions.

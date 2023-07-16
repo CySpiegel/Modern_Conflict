@@ -1,4 +1,4 @@
-// Requires ROS_Sandstorm v4.5 - Hat blows off - by RickOShay
+// Requires ROS_Sandstorm v4.6 - Hat blows off - by RickOShay
 // This script is called by ROS_Sandstorm
 // Full credit must be given if used as is or in derivative work
 // This script is part of ROS_Sandstorm

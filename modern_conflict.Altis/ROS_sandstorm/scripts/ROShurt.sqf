@@ -1,6 +1,6 @@
-// Requires ROSsandstorm.sqf v4.5 by RickOShay
+// Requires ROSsandstorm.sqf v4.6 by RickOShay
 
-params ["_endtime","_hndlFg","_debug"];
+params ["_endtime","_debug"];
 
 _sounds = ["hurt1","hurt2","hurt3","hurt4","hurt5","hurt6","hurt7"];
 
@@ -17,8 +17,8 @@ While {time < _endtime} do {
 	if (vehicle player == player && !SS_inBuilding) then {
 		// not wearing goggles => hurt + extra filmgrain
 		if (goggles player == "") then {
-			_hndlFg ppEffectAdjust [0.08, 1.25, 2.2, 0.75, 1, 0];
-	    	_hndlFg ppEffectCommit 5;
+			SS_hndlFGrain ppEffectAdjust [0.08, 1.25, 2.2, 0.75, 1, 0];
+	    	SS_hndlFGrain ppEffectCommit 5;
 			_hurt = selectRandom _sounds;
 	   		player say3d _hurt;
 			sleep 5 + random 5;

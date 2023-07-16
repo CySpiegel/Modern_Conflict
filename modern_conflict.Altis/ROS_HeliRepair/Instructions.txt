@@ -1,0 +1,47 @@
+ROS_Helicopter_Repair v1.5 by RickOShay
+
+This script allows you to add a fully functional helicopter repair bay to your missions.
+
+LEGAL STUFF
+Credit must be given in your mission and on the Steam Workshop if this script is used in any mission or derivative works. 
+There are three dependent scripts: ROS_HeliRepair.sqf, ROS_Welder.sqf, ROSWavein.sqf.
+They must be kept together under the ROS_HeliRepair folder.
+
+FEATURES
+* A 'wave in' unit will auto wave in helicopters that need fuel or repair. It will track the incoming helo and wave lights sticks for easier navigation.
+* Once landed an AI repair unit will walk over to your helo (after you have switched off the engine) and proceed to repair the vehicle.
+* If it's night an orange rotating repair light will appear on the helipad to signal in use.
+* The repairer will use a welding animation complete with welder cart and sparks.
+* Once vehicle repaired a fuel hose from a spawned in fuel truck will appear and connect to the helo.
+* The helo will be refueled.
+* Once refueled the repair unit will announce the vehicle is repaired and refueled and proceed to return to the origianl position.   
+* Custom sound effects for repair and refuel and landing clearance
+* If repair bay has debris like a destroyed heli - it will be removed
+* AI pilots can no longer use the repair bay (too unreliable)
+* Works in SP and on hosted (listen) and dedicated servers
+
+HOW TO USE THIS SCRIPT 
+See demo for reference.
+
+In the editor drop down a helipad where the heli will land and be repaired. Suggest a large square pad - its easier to see and for large helos to position themselves. Place a Repair AI unit ~20m behind the helipad (from helipad center) facing the helipad in the direction of incoming helos.
+Repair unit must be in his own group and be a minimum of 20m from the helipad.
+
+Repair👨unit WaveIn👨unit
+
+           ↑ 20m
+
+           □ helipad  → 25m ⛟ (Optional auto placed fuel truck, refueler and fuel pipes - see script option)
+ 
+           ↑
+           🚁 inbound helis
+
+Place the following line in the Repair units init field:
+[this] execvm "ROS_HeliRepair\scripts\ROS_HeliRepair.sqf";
+
+For added effect use the ROS_wavein.sqf script to have a unit wave in the helis. Simply place a suitably attired unit 20m in front of the helipad.  
+See the ROS_wavein.sqf script's header for more instructions. 
+
+Copy the ROS_HeliRepair folder into your mission folder.
+
+Add the CfgSound sound classes to your description.ext see example description.ext file.
+

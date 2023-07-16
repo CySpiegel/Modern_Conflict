@@ -1,5 +1,5 @@
 /*
-ROS_Sandstorm_Scheduler.sqf v4.5 requires ROS_Sandstorm package by RickOShay
+ROS_Sandstorm_Scheduler.sqf v4.6 requires ROS_Sandstorm package by RickOShay
 
 LEGAL STUFF AND USAGE
 You may use ROS_Sandstorm as long as this header text is not removed and all original files are kept intact and NOT EDITED and the folder
@@ -85,7 +85,7 @@ _hatCheck = false;
 For testing change the next line to _debug = true; to hint storm start times, storm events etc. The first skiptime is shown in the hint
 and auto copied to the clipboard so you can immediately paste it into debug console: i.e. skiptime 'Ctrl v - paste' followed by Local exec.*/
 
-_debug = false; // change to false to switch debug hints off.
+_debug = true; // change to false to switch debug hints off.
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////// DON'T CHANGE LINES BELOW //////////////////////////////////////////////////////////
@@ -102,6 +102,7 @@ ROS_SS_schedulerRunning = true;
 publicVariable "ROS_SS_schedulerRunning";
 
 if (isnil "ROS_SS_Running") then {ROS_SS_Running = false};
+publicVariable "ROS_SS_Running";
 
 _spacing = 0;
 _SstormWarn = "";
@@ -149,9 +150,10 @@ if (_numOfSandstorms > 0) then {
 
 if (_debug) then {
 	[format ["There are %1 sandstorms\nstarting at these times:\n%2\nNext storm in: %3\n\nSkiptime copied to clipboard.", _numOfSandstorms, _stormStartTimes, _nextStormTimeDiff]] remoteExec ["hint"];
-	if (_numOfSandstorms > 0) then {copyToClipboard _nextStormTimeDiff};
-	sleep 1;
+	//copyToClipboard _nextStormTimeDiff;
 };
+
+copyToClipboard _nextStormTimeDiff;
 
 sleep 1;
 
@@ -166,6 +168,8 @@ While {daytime <=24 && ROS_SS_schedulerRunning} do {
 		if (_debug) then {hint "New day -> new sandstorm schedule"};
 		ROS_SS_Running = false;
 		publicVariable "ROS_SS_Running";
+		ROS_SS_schedulerRunning = false;
+		publicVariable "ROS_SS_schedulerRunning";
 		sleep 0.01;
 		[_minNumOfSandstorms, _maxNumOfSandstorms, _stormLength] execvm "ROS_Sandstorm\scripts\ROS_Sandstorm_Scheduler.sqf";
 	};
@@ -181,8 +185,9 @@ While {daytime <=24 && ROS_SS_schedulerRunning} do {
 			};
 
 			_numSandstormsLeft = _numSandstormsLeft -1;
-
-			[[_stormLength, _eyewearCheck, _hatCheck, _SelectedWindDir, _debug],"ROS_Sandstorm\scripts\ROS_Sandstorm.sqf"] remoteexec ["BIS_fnc_execVM"];
+			if !(ROS_SS_Running) then {
+				[[_stormLength, _eyewearCheck, _hatCheck, _SelectedWindDir, _debug],"ROS_Sandstorm\scripts\ROS_Sandstorm.sqf"] remoteexec ["BIS_fnc_execVM"];
+			};
 		};
 	}; // end for
 

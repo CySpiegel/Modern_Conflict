@@ -1,4 +1,4 @@
-// Requires ROS_Sandstorm v4.5 by RickOShay
+// Requires ROS_Sandstorm v4.6 by RickOShay
 // This script may only be used with ROS_Sandstorm header text and attribution must be given if used in missions.
 
 params ["_endtime","_debug"];

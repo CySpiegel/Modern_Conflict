@@ -1,5 +1,5 @@
 /*
-ROS SANDSTORM version 4.5 by RickOShay
+ROS SANDSTORM version 4.6 by RickOShay
 --------------------------------------
 LEGAL STUFF AND USAGE
 ---------------------
@@ -14,8 +14,7 @@ GENERAL FEATURES:
 Storm random scheduler for Listen/Dedicated servers, variable storm density, fixed or random storm length,
 variable colour and wind strength, variable visibility, indoor outdoor & in vehicle sound attenuation, wind
 affects small and medium sized objects - works day and night, protective eyewear check and damage, the scheduler
-script auto adjusts number of sandstorms based on available time to 24h00, allowance for existing mission time acceleration and wind settings, random prob of certain hats blowing off. Variable enemy response based on visibility. Periodic dust devils that can effect small vehicles and men.
-The weather report is only available if the scheduler is used. Limited fps impact, works in SP and MP.
+script auto adjusts number of sandstorms based on available time to 24h00, allowance for existing mission time acceleration and wind settings, random prob of certain hats blowing off. Variable enemy response based on visibility. The weather report is only available if the scheduler is used. Limited fps impact, works in SP and MP.
 
 METHOD:
 -------
@@ -104,7 +103,8 @@ if (_SelectedWindDir == 0) then {
     };
 };
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-if (isnil "ROS_SS_Running") then {ROS_SS_Running = false};
+
+if (isnil "ROS_SS_Running") then {ROS_SS_Running = false;};
 // Prevent more than one storm (storm called directly and scheduler running?)
 if (ROS_SS_Running) exitWith {};
 
@@ -136,6 +136,9 @@ SS_doorClosed = false;
 SS_nearestDoor = "";
 SS_soRunning = false;
 SS_moRunning = false;
+SS_hndlFGrain = 0;
+SS_colcor1 = 0;
+SS_P_alpha = 0;
 
 // Camshake
 _shakepower = 0.5 + random 0.5;
@@ -143,40 +146,49 @@ _shakeduration = 1 + random 1;
 _shakefreq = 2 + random 2;
 
 // Add goggles and try to put into inventory - add default eyewear here
-if (goggles player == "") then {
-    if (player canAdd "G_Tactical_Clear") then {
-        player addItem "G_Tactical_Clear";
-        player unassignItem "G_Tactical_Clear";
+if (hasInterface) then {
+    if (goggles player == "") then {
+        if (player canAdd "G_Tactical_Clear") then {
+            player addItem "G_Tactical_Clear";
+            player unassignItem "G_Tactical_Clear";
+        };
     };
 };
 
 // Store and set time multiplier it is reset to the mission default at the end of this script
 _orig_timemultiplier = timeMultiplier;
-setTimeMultiplier 1;
+
+if (isServer) then {setTimeMultiplier 1;};
 
 // Remove ambient life
 // enableEnvironment [false, false];
 
 // Critical fix for overcast value < 0 & wind = [0,0,0] & windDir == 0; Bug in Arma 3 weather system.
 if (overcast < 0) then {
-    hint "Overcast <0 bug - forced overcast change";
-    if (isServer && fog <=0) then {[0, 0.1] remoteExec ["setFog"];};
-    0 setWindForce 1;
-    forceWeatherChange;
-    skipTime -24;
-    86400 setOvercast 0.1;
-    [0, 0] remoteexec ["setRain", 0];
-    forceWeatherChange;
-    999999 setRain 0;
-    if (isServer) then {setwind [1,1,true]};
-    skipTime 24;
-    waitUntil {overcast >0};
+    if (isServer) then {
+        ["Overcast <0 bug - forced overcast change"] remoteexec ["hint",0];
+        if (fog <=0) then {[0, 0.1] remoteExec ["setFog"]};
+        0 setWindForce 1;
+        forceWeatherChange;
+        skipTime -24;
+        86400 setOvercast 0.1;
+        [0, 0] remoteexec ["setRain", 0];
+        forceWeatherChange;
+        999999 setRain 0;
+        setwind [1,1,true];
+        skipTime 24;
+        waitUntil {overcast >0};
+    };
 };
 
 // Stop sandstorm - if overcast >= 60% or rain >0 - See weather note in header.
 if (overcast >= 0.6 or rain >0) exitWith {
-    if (_debug) then {hint "Overcast mission setting is too high (>50%)!\nSandstorm aborted!"};
-    sleep 60;
+    if (_debug) then {hint "Overcast setting is too high - forcing overcast down"};
+    if (isServer) then {
+        [10, 0.4] remoteexec["setOvercast", 0];
+        0 setRain 0;
+    };
+    sleep 10;
     ROS_SS_Running = false;
 };
 
@@ -213,22 +225,25 @@ sleep 10;
         };
     };
     _curWSpeedkmh = (vectorMagnitude wind) * 3.6;
-    if (_debug) then {hint format ["Wind speed increased to:\nKPH: %1\n DIR: %2",_curWSpeedkmh tofixed 2, windDir tofixed 1]; sleep 1;};
+    if (_debug) then {hint "Wind speed increasing"; sleep 1;};
 };
 
 sleep 15;
 
 // Start Film grain
 if (_debug) then {hint "Start filmgrain"; sleep 1;};
-_hndlFg = ppEffectCreate ["FilmGrain", 2000];
-_hndlFg ppEffectEnable true;
-_hndlFg ppEffectAdjust [0.08, 1.25, 2.05, 0.75, 1, 0];
-_hndlFg ppEffectCommit 120;
+
+SS_hndlFGrain = ppEffectCreate ["FilmGrain", 2000];
+SS_hndlFGrain ppEffectEnable true;
+// intensity, sharpness, grainSize, intensityX0, intensityX1, monochromatic
+SS_hndlFGrain ppEffectAdjust [0.08, 1.25, 2.05, 0.75, 1, 0];
+SS_hndlFGrain ppEffectCommit 120;
 
 // Inside building or vehicle check for sound attenuation and eyewear, adjust film grain
 if (_debug) then {hint "Inside building or vehicle start"; sleep 0.5;};
-[_endtime,_shakepower,_shakeduration,_shakefreq,_hndlFg,_debug] spawn {
-    params ["_endtime","_shakepower","_shakeduration","_shakefreq","_hndlFg","_debug"];
+
+[_endtime,_shakepower,_shakeduration,_shakefreq,_debug] spawn {
+    params ["_endtime","_shakepower","_shakeduration","_shakefreq","_debug"];
 
     _doors = ["dvere","dvere1","dvere2","door_0","door_1","door_2","door_3","door_4","Door_1_rot","Door_2_rot","Door_3_rot","Door_4_rot","Door_5_rot","Door_6_rot","Door_7_rot","Door_8_rot","Door_9_rot","Door_10_rot","Door_11_rot","Door_12_rot","door_L","door_R","vrataL","vrataR"];
 
@@ -285,27 +300,27 @@ if (_debug) then {hint "Inside building or vehicle start"; sleep 0.5;};
                 {if (typeOf _x == "#particlesource") then {deleteVehicle _x}} forEach (position (vehicle player) nearObjects 30);
                 addCamShake [(_shakepower/2), _shakeduration, _shakefreq];
                 1 fadeSound 0.50;
-                if (!SS_fadeout) then {
-                    _hndlFg ppEffectAdjust [0.08, 1.25, -0.01, 0.75, 1, 0];
-                    _hndlFg ppEffectCommit 1;
+                if !(SS_fadeout) then {
+                    SS_hndlFGrain ppEffectAdjust [0.08, 1.25, -0.01, 0.75, 1, 0];
+                    SS_hndlFGrain ppEffectCommit 1;
                 };
             } else {
                 // Open vehicle - slight attenuation, reduce camshake, normal film grain
                 addCamShake [(_shakepower/2), _shakeduration, _shakefreq];
                 if (soundVolume != 0.65) then {1 fadeSound 0.65};
-                if (!SS_fadeout) then {
-                    _hndlFg ppEffectAdjust [0.08, 1.25, -0.01, 0.75, 1, 0];
-                    _hndlFg ppEffectCommit 1;
+                if !(SS_fadeout) then {
+                    SS_hndlFGrain ppEffectAdjust [0.08, 1.25, -0.01, 0.75, 1, 0];
+                    SS_hndlFGrain ppEffectCommit 1;
                 };
             };
         };
 
         if (SS_inBuilding) then {
-            if (soundVolume != 0.5) then {0 fadeSound 0.5};
+            if (soundVolume != 0.5) then {1 fadeSound 0.5};
             enableCamShake false;
-            if (!SS_fadeout) then {
-                _hndlFg ppEffectAdjust [0.08, 1.25, 1.0, 0.75, 1, 0];
-                _hndlFg ppEffectCommit 1;
+            if !(SS_fadeout) then {
+                SS_hndlFGrain ppEffectAdjust [0.08, 1.25, 1.0, 0.75, 1, 0];
+                SS_hndlFGrain ppEffectCommit 1;
             };
             // Is nearest door open -> attentuate sound by RickOShay (must give credit if used independently)
             _allDoors = ["dvere","dvere1","dvere2","vrataL","vrataR","door_0","door_1","door_2","door_3","door_4","door_L","door_R","door_1a_move","door_2a_move","door_7a_move","door_8a_move","door_1_rot","door_2_rot","door_3_rot","door_4_rot","door_5_rot","door_6_rot","door_7_rot","door_8_rot","door_9_rot","door_10_rot","door_11_rot","door_12_rot","door_13_rot","door_14_rot","door_15_rot","door_16_rot","door_17_rot","door_18_rot","door_19_rot","door_20_rot","door_21_rot","door_22_rot"];
@@ -328,7 +343,7 @@ if (_debug) then {hint "Inside building or vehicle start"; sleep 0.5;};
                 // if door closed reduce volume
                 if (_building animationphase (_bDoors select _index) ==0) then {
                     SS_doorclosed = true;
-                    if (soundVolume != 0.35) then {0.1 fadeSound 0.35};
+                    if (soundVolume != 0.35) then {1 fadeSound 0.35};
                 };
             };
             // Delete particles
@@ -338,103 +353,106 @@ if (_debug) then {hint "Inside building or vehicle start"; sleep 0.5;};
         if (player == vehicle player && !SS_inBuilding) then {
             // Player wearing eyewear adjust film grain
             if (goggles player != "") then {
-                if (!SS_fadeout) then {
-                    _hndlFg ppEffectAdjust [0.08, 1.25, 1.0, 0.75, 1, 0];
-                    _hndlFg ppEffectCommit 1;
+                if !(SS_fadeout) then {
+                    SS_hndlFGrain ppEffectAdjust [0.08, 1.25, 1.0, 0.75, 1, 0];
+                    SS_hndlFGrain ppEffectCommit 1;
                 };
             } else {
-                if (!SS_fadeout) then {
-                    _hndlFg ppEffectAdjust [0.08, 1.25, 2.05, 0.75, 1, 0];
-                    _hndlFg ppEffectCommit 1;
+                if !(SS_fadeout) then {
+                    SS_hndlFGrain ppEffectAdjust [0.08, 1.25, 2.05, 0.75, 1, 0];
+                    SS_hndlFGrain ppEffectCommit 1;
                 };
             };
-            if (!SS_fadeout) then {
+            if !(SS_fadeout) then {
                 enableCamShake true;
                 addCamShake [_shakepower, _shakeduration, _shakefreq];
             };
-            if (soundVolume != 1) then {0.2 fadeSound 1};
+            if (soundVolume != 1) then {1 fadeSound 1};
         };
     sleep 0.2;
     }; // end while
 
 }; // end spawn Inside building or vehicle check for sound attenuation and eyewear, adjust film grain
 
-// Move small and medium objects
+
+// Move small and medium objects - client and server
 [_endtime, _affectsSmallObjs, _affectsMediumObjs] spawn {
 
     params ["_endtime", "_affectsSmallObjs", "_affectsMediumObjs"];
-    _objTypes = ["Land_Tableware_01_cup_F","Land_CerealsBox_F","Land_MarketShelter_F","Land_Aut_zast","Land_cargo_addon02_V2_F","Land_cargo_addon02_V1_F","Land_ClothShelter_02_F","Land_ClothShelter_01_F","Land_CampingChair_V1_F","Land_Chair_EP1","Land_TablePlastic_01_F","Land_RattanTable_01_F","FoldTable","Land_TableSmall_01_F","Land_ChairPlastic_F","Land_BottlePlastic_V2_F","Land_WaterBottle_01_full_F","Land_BottlePlastic_V1_F","Land_BottlePlastic_V2_F","Land_Ketchup_01_F","Land_Mustard_01_F","SmallTable","Land_WaterBottle_01_empty_F","Land_WaterBottle_01_compressed_F","Land_Can_Dented_F","Land_Can_V2_F","Land_Can_V3_F","Land_Can_Rusty_F","Land_Can_V1_F","Can_small","Land_CampingChair_V2_white_F","Land_CampingChair_V2_F","Land_ChairWood_F","Land_CampingTable_white_F"];
+    _objTypes = ["Land_Tableware_01_cup_F","Land_CerealsBox_F","Land_MarketShelter_F","Land_Aut_zast","Land_cargo_addon02_V2_F","Land_cargo_addon02_V1_F","Land_ClothShelter_02_F","Land_ClothShelter_01_F","Land_CampingChair_V1_F","Land_Chair_EP1","Land_TablePlastic_01_F","Land_RattanTable_01_F","FoldTable","Land_TableSmall_01_F","Land_ChairPlastic_F","Land_BottlePlastic_V2_F","Land_WaterBottle_01_full_F","Land_BottlePlastic_V1_F","Land_BottlePlastic_V2_F","Land_Ketchup_01_F","Land_Mustard_01_F","SmallTable","Land_WaterBottle_01_empty_F","Land_WaterBottle_01_compressed_F","Land_Can_Dented_F","Land_Can_V2_F","Land_Can_V3_F","Land_Can_Rusty_F","Land_Can_V1_F","Can_small","Land_CampingChair_V2_white_F","Land_CampingChair_V2_F","Land_ChairWood_F","Land_PortableDesk_01_sand_F","Land_PortableDesk_01_olive_F","Land_CampingTable_white_F"];
 
     _sfxSO = "";
     _sfxMO = "";
-    _suitableObjs = [];
+    _nearPobjects = [];
     _smallObjects = [];
     _mediumObjects = [];
+    SS_suitableObjs = [];
     SS_soRunning = false;
     SS_moRunning = false;
 
     while {time <= _endtime} do {
+
         if (_affectsSmallObjs or _affectsMediumObjs) then {
             _nearPobjects = nearestObjects [vehicle player, [], 35];
-            {if (typeof _x in _objTypes && simulationEnabled _x) then {_suitableObjs pushBackUnique _x}} foreach _nearPobjects;
+            // Get all suitable nearby objects
+            {if (typeof _x in _objTypes && simulationEnabled _x) then {SS_suitableObjs pushBackUnique _x}} foreach _nearPobjects;
+            publicVariable "SS_suitableObjs";
         };
-
-        sleep 0.3;
-
         if (_affectsSmallObjs) then {
-            // Small objects - 100% chance
-            {if (boundingBox _x select 2 <= 0.2) then {_smallObjects pushBackUnique _x}} forEach _suitableObjs;
-            _smallObjects = _smallObjects call BIS_fnc_arrayShuffle;
+                // Small objects - 100% chance
+                {if (boundingBox _x select 2 <= 0.2) then {_smallObjects pushBackUnique _x}} forEach SS_suitableObjs;
+                _smallObjects = _smallObjects call BIS_fnc_arrayShuffle;
 
-            if (count _smallObjects > 0 && time <= _endtime) then {
-                if (!SS_soRunning) then {
-                    [_smallObjects, _endtime, _sfxSO] spawn {
-                        params ["_smallObjects", "_endtime", "_sfxSO"];
+                if (count _smallObjects > 0 && time <= _endtime) then {
+                    if (!SS_soRunning) then {
+                        [_smallObjects, _endtime, _sfxSO] spawn {
+                            params ["_smallObjects", "_endtime", "_sfxSO"];
 
-                        _sndTincans = ["tincan1","tincan2","tincan3","tincan4","tincan5","tincan6","tincan7"];
-                        {
-                            _objToMove = _x;
-                            _buildings = [];
-                            _buildings = (nearestObjects [_objToMove, ["House", "Building"], 10]) select {((boundingBoxReal _x select 1) select 1)>3};
-                            _vFactor = 3 + random 4;
-                            // Don't move objects <10m from buildings
-                            if (local _objToMove && count _buildings==0) then {
-                                _vx = (_vFactor * (sin windDir))+ random 0.11;
-                                _vy = (_vFactor * (cos windDir))+ random 0.1;
-                                _vz = _vFactor /3;
-                                _objToMove setvelocity [_vx,_vy,_vz];
-                                if ((str _objToMove find "can") > -1) then { _sfxSO = selectRandom _sndTincans;};
-                                if (_sfxSO != "" && random 1 <0.67) then {[_objToMove, _sfxSO] remoteExec ["say3D",0]};
-                                sleep 1 + random 1.5;
-                            };
-                            if (time >= _endtime) exitWith {};
-                        } foreach _smallObjects;
+                            _sndTincans = ["tincan1","tincan2","tincan3","tincan4","tincan5","tincan6","tincan7"];
+                            {
+                                _objToMove = _x;
+                                _buildings = [];
+                                _buildings = (nearestObjects [_objToMove, ["House", "Building"], 10]) select {((boundingBox _x select 1) select 1)>3};
+                                _vFactor = 3 + random 4;
+                                // Don't move objects close to buildings
+                                if (local _objToMove && count _buildings==0) then {
+                                    if (isServer) then {
+                                        _vx = (_vFactor * (sin windDir))+ random 0.11;
+                                        _vy = (_vFactor * (cos windDir))+ random 0.1;
+                                        _vz = _vFactor /3;
+                                        _objToMove setvelocity [_vx,_vy,_vz];
+                                    };
+                                    if ((str _objToMove find "can") > -1) then { _sfxSO = selectRandom _sndTincans;};
+                                    if (_sfxSO != "" && random 1 <0.67) then {[_objToMove, _sfxSO] remoteExec ["say3D"]}; // good enough
+                                    sleep 1.5 + random 2;
+                                };
+                                if (time >= _endtime) exitWith {};
+                            } foreach _smallObjects;
+                        };
+                        SS_soRunning = true;
                     };
+                }; //count _smallObjects > 0
 
-                    SS_soRunning = true;
-                };
-            };
-        }; // end small objs
+        }; // end _affectsSmallObjs
 
-        sleep 15;
+        sleep 30;
 
         // Medium objects
         if (_affectsMediumObjs) then {
             _pos = [];
             _dir = 0;
-            {if (boundingBox _x select 2 > 0.2 && boundingBox _x select 2 < 2) then {
+            // Filter larger suitable objects
+            {if (boundingBox _x select 2 > 0.2 && boundingBox _x select 2 < 2.5 ) then {
                 _mediumObjects pushBack _x;
                 {if (isnil {_x getVariable (str _x +"pos")}) then {_pos = getPosATL _x; _dir = getdir _x; _x setVariable [(str _x +"pos"), _pos,true]; _x setVariable [(str _x +"dir"), _dir,true]}} forEach _mediumObjects;
-            }} forEach _suitableObjs;
-
-            sleep 0.3;
+            }} forEach SS_suitableObjs;
 
             _mediumObjects = _mediumObjects call BIS_fnc_arrayShuffle;
 
             if (count _mediumObjects > 0 && time <= _endtime) then {
                 if (!SS_moRunning) then {
                     SS_moRunning = true;
-                    [_mediumObjects, _endtime] spawn {
+                        [_mediumObjects, _endtime] spawn {
                         params ["_mediumObjects", "_endtime"];
 
                         _sndMetalChairs = ["metalchair1","metalchair2","metalchair3"];
@@ -443,44 +461,49 @@ if (_debug) then {hint "Inside building or vehicle start"; sleep 0.5;};
                         {
                             _objToMove = selectRandom _mediumObjects;
                             _buildings = [];
-                            _buildings = (nearestObjects [_objToMove, ["House", "Building"], 12]) select {((boundingBoxReal _x select 1) select 1)>3};
+                            _buildings = (nearestObjects [_objToMove, ["House", "Building"], 10]) select {((boundingBox _x select 1) select 1)>3};
                             _vFactor = 3 + random 2.2;
                             // Don't move objects close to buildings
                             if (local _objToMove && count _buildings==0) then {
                                 // Add action to flip upright and reset after / during storm
                                 if (!(_objToMove getVariable ["objmoved",false])) then {
-                                    _objToMove addAction ["<t color='#FFAB00'>Reset</t>", {
-                                    params ["_target", "_caller", "_actionId"];
-                                    _target setpos [(getpos _target) select 0,(getpos _target) select 1,0.2];
-                                    _target setVectorUp surfaceNormal position _target;
-                                    _target setPosATL (_target getVariable (str _target +"pos"));
-                                    _target setDir (_target getVariable (str _target +"dir"));
-                                    _target removeAction _actionId;
-                                    _target setVariable ["objmoved",false,true];
-                                    }, [], 9, true, true, "", "player distance _target < 4"];
+                                    [_objToMove, ["<t color='#FFAB00'>Reset</t>", {
+                                        params ["_target", "_caller", "_actionId"];
+                                        _target setpos [(getpos _target) select 0,(getpos _target) select 1,0.2];
+                                        _target setVectorUp surfaceNormal position _target;
+                                        _target setPosATL (_target getVariable (str _target +"pos"));
+                                        _target setDir (_target getVariable (str _target +"dir"));
+                                        _target removeAction _actionId;
+                                        _target setVariable ["objmoved",false,true];
+                                        removeAllActions _target;
+                                    }, [], 9, true, true, "", "_this distance _target < 4"]] remoteExec ["addAction",0];
                                     _objToMove setVariable ["objmoved",true,true];
                                 };
                                 if (isplayer (nearestObject [_objToMove,"man"]) && (nearestObject [_objToMove,"man"]) distance _objToMove > 4 && (nearestObject [_objToMove,"man"]) distance _objToMove < 40) then {
+
                                     if ((str _objToMove find "chairplastic") >= 0) then {_sfxMO = selectRandom _sndPlasticChairs};
                                     if ((str _objToMove find "campingchair") >= 0) then {_sfxMO = selectRandom _sndMetalChairs};
-                                    _xrnd = (vectorUp _objToMove select 0) + random 0.5;
-                                    _yrnd = (vectorUp _objToMove select 1) + random 0.5;
-                                    _zrnd = (vectorUp _objToMove select 2) + random 0.4;
-                                    _objToMove setVectorUp [_xrnd,_yrnd,_zrnd];
-                                    _vx = _vFactor * (sin windDir) + random 0.11;
-                                    _vy = _vFactor * (cos windDir) + random 0.1;
-                                    _vz = _vFactor /2.8;
-                                    _objToMove setvelocity [_vx,_vy,_vz];
+                                    if (isServer) then {
+                                        _xrnd = (vectorUp _objToMove select 0) + random 0.5;
+                                        _yrnd = (vectorUp _objToMove select 1) + random 0.5;
+                                        _zrnd = (vectorUp _objToMove select 2) + random 0.4;
+                                        _objToMove setVectorUp [_xrnd,_yrnd,_zrnd];
+                                        _vx = _vFactor * (sin windDir) + random 0.11;
+                                        _vy = _vFactor * (cos windDir) + random 0.1;
+                                        _vz = _vFactor /2.8;
+                                        _objToMove setvelocity [_vx,_vy,_vz];
+                                    };
                                     sleep 0.5;
                                     if (_sfxMO != "" && isServer) then {[_objToMove, _sfxMO] remoteExec ["say3D",0]};
-                                    sleep 2 + random 1;
+                                    sleep 3 + random 5;
                                 };
                             };
                             if (time >= _endtime) exitWith {};
                         } foreach _mediumObjects;
-                    };
-                };
-            };
+                    }; // end spawn
+
+                }; // !SS_moRunning
+            }; // count _mediumObjects > 0
         };// end medium objs
 
         sleep 10;
@@ -489,9 +512,9 @@ if (_debug) then {hint "Inside building or vehicle start"; sleep 0.5;};
     }; // end while
     SS_soRunning = false;
     SS_moRunning = false;
-}; // end spawn Move small and medium objects
+}; // end spawn Move small and medium objects - client and server
 
-sleep 2;
+sleep 1;
 
 // Start leaves
 SS_leaves_Fnc = {
@@ -503,7 +526,7 @@ SS_leaves_Fnc = {
     SS_leaves_p setParticleParams [
     ["\A3\data_f\ParticleEffects\Hit_Leaves\Sticks", 1, 1, 1], "", "SpaceObject", 1, 10, [0,0,0], [_WindVectorX, _WindVectorY, 7], 2, 0.000001, 0.0, 0.4, [0.5 + random 0.8], [[0.68,0.68,0.68,1]], [1.5,1], 13, 13, "", "", (vehicle player), 0, true , 1, [[0,0,0,0]]];
     //setPartRand [lifeTime, position, moveVelocity, rotationVelocity, size, color, randomDirectionPeriod, randomDirectionIntensity, angle, bounceOnSurf]:
-    SS_leaves_p setParticleRandom [0, [30, 30, 8], [1, 1, 2], 1.5, (0.1+random 0.2), [0, 0, 0, 0.5], 1, 1, 0, 1];
+    SS_leaves_p setParticleRandom [0, [30, 30, 8], [1, 1, 2], 1.5, (0.1+random 0.2), [0, 0, 0, 0.5], 1, 1, 0, 0.3];
     SS_leaves_p setDropInterval SS_leaves_density;
 };
 
@@ -512,9 +535,9 @@ if (_debug) then {hint "Start leaves"; sleep 1;};
 
 // Chance of blowing soft hat off //
 if (isnil "_hatCheck") then {_hatCheck = false};
-if (_debug && _hatCheck) then {hint "Start hats off";};
+if (_debug && _hatCheck) then {hint "Start hat off";};
 if (_hatCheck) then {
-    [player,_debug] execvm "ROS_sandstorm\scripts\ROShatblowsoff.sqf";
+    if (hasinterface) then {[player,_debug] execvm "ROS_sandstorm\scripts\ROShatblowsoff.sqf"};
 };
 
 sleep 1;
@@ -522,7 +545,7 @@ sleep 1;
 // Is player wearing eye protection? //
 if (isnil "_eyewearCheck") then {_eyewearCheck = false};
 if (_eyewearCheck) then {
-    [_endtime,_hndlFg,_debug] execvm "ROS_sandstorm\scripts\ROShurt.sqf";
+    if (hasinterface) then {[_endtime,_debug] execvm "ROS_sandstorm\scripts\ROShurt.sqf"};
 };
 
 sleep 1;
@@ -547,7 +570,7 @@ sleep 1;
     };
 };
 
-// ~28 secs to this point - wind intro 32 secs - 4 sec overlap before main wind loop
+// 28 secs to this point - wind intro 32 secs - 4 sec overlap before main wind loop
 
 // Start main Wind sound loop
 [_endtime, _debug] execvm "ROS_sandstorm\scripts\ROSwindloop.sqf";
@@ -556,11 +579,11 @@ sleep 4;
 
 // Add color correction
 if (_debug) then {hint "Start color correction"; sleep 1;};
-_colcor1 = ppEffectCreate ["colorCorrections", 1550];
-_colcor1 ppEffectEnable true;
+SS_colcor1 = ppEffectCreate ["colorCorrections", 1550];
+SS_colcor1 ppEffectEnable true;
 // brightness, contrast, offset, [Blend rgb a=factor (0 orig col, 1 blend col)] [Coloriz rgb a=satur (0 orig col, 1 B&W x col)] [Desat weights r g b 0]
-_colcor1 ppEffectAdjust [0.9 + (overcast/5), 1, 0, [0.25, 0.15, 0.12, 0.1+random 0.3], [0.75 + random 0.05, 0.65 + random 0.05, 0.5 + random 0.05, 0.4 + random 0.1], [0.65, 0.65, 0.65, 0]];
-_colcor1 ppEffectCommit 10;
+SS_colcor1 ppEffectAdjust [0.9 + (overcast/5), 1, 0, [0.2, 0.15, 0.12, 0.1+random 0.3], [0.75 + random 0.05, 0.65 + random 0.05, 0.5 + random 0.05, 0.4 + random 0.1], [0.65, 0.65, 0.65, 0]];
+SS_colcor1 ppEffectCommit 10;
 
 // Start FOG
 [_debug] spawn {
@@ -574,119 +597,47 @@ _colcor1 ppEffectCommit 10;
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// INTRO PARTICLES //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// Dust devil
+// Dust devils
 SS_dustdevil_Fnc = {
-    params ["_endtime", "_debug"];
-
-    if (!(isTouchingGround vehicle player) or (typeOf vehicle player iskindof "plane" or typeOf vehicle player iskindof "helicopter")) exitWith {};
-
-    [_endtime, _debug] spawn {
-        params ["_endtime", "_debug"];
-
-        _counter = 0; counter = _counter;
-        _lifetime = 3;
-        _pos0 = [0,0,0];
-        _pos1 = [0,0,0];
-        _headlessClients = entities "HeadlessClient_F";
-        _humanPlayers = allPlayers - _headlessClients;
-        private _player = _humanPlayers select 0;
-
-        // create dust devil
-        if (_counter == 0) then {
-            if (!isnull SS_dust_devil_part) then {deleteVehicle SS_dust_devil_part};
-            sleep 4;
-            _pos0 = [(vehicle _player), 5, 50, 5, 0, 30, 0] call BIS_fnc_findSafePos;
-            sleep 1;
-            SS_dust_devil_part = "#particlesource" createVehicleLocal _pos0;
-        };
-
-        _sfac = 2+random 2;
-        _size = [1*(_sfac/2), 2*_sfac, 3*_sfac];
-        _rubbing = (random 0.3);
-        _lifetime = _sfac;
-
-        while {time <= (_endtime +50) && alive SS_dust_devil_part} do {
-            _pos1 = SS_dust_devil_part getPos [0.3, (winddir + random 20)];
-            _lifetime;
-            SS_dust_devil_part setParticleCircle [0, [0, 0, 0]];
-            SS_dust_devil_part setParticleRandom [ _lifetime,  [0.3, 0.3, 0.5],  [0.1, 0.1, 0], 0,  0.3,  [0, 0, 0, 0.2],  0,  0];
-            SS_dust_devil_part setParticleParams [
-            ["\A3\data_f\cl_basic",
-            1,
-            0,
-            1],
-            "",
-            "Billboard",
-            1,
-            _lifetime,
-            [0,0,0], // relpos
-            [0, 0, 9], // vel
-            500, // rotvel
-            12, // weight
-            7.9, // vol
-            _rubbing,  // rubbing
-            _size, // size
-            [[0,0,0,0.2], [0.4,0.25,0.15,0.15], [0.5,0.5,0.5,0]], // col
-            [0.08],
-            1,
-            0,
-            "",
-            "",
-            _pos1];
-
-            SS_dust_devil_part setDropInterval (0.005 - (random 0.001));
-
-            SS_dust_devil_part setposatl _pos1;
-            _counter = _counter + 0.1;
-
-            // Kill dustdevil if near building
-            _building = nearestObject [SS_dust_devil_part, "HouseBase"];
-            if (0 boundingBoxReal _building select 2 > 3.5 && _building distance SS_dust_devil_part < (0 boundingBoxReal _building select 2)) then { _counter = 10};
-
-            // Lift objects off the ground
-            if (alive SS_dust_devil_part) then {
-                _veh = nearestObject [SS_dust_devil_part, "car"];
-                if (!isnull _veh && (0 boundingboxreal _veh select 2) <9 && _veh distance SS_dust_devil_part < 4.5) then {
-                    _vvel = velocity _veh;
-                    _veh setVelocity [_vvel select 0, _vvel select 1, 10];
-                };
-                _man = nearestObject [SS_dust_devil_part, "man"];
-                if (!isnull _man && _man distance SS_dust_devil_part < 2) then {
-                    _mvel = velocity _man;
-                    _man setVelocity [_mvel select 0, _mvel select 1, 15];
-                };
-            };
-
-            // Kill and recreate dustdevil
-            if (_counter >= 10 && time < (_endtime +50)) then {
-                deleteVehicle SS_dust_devil_part;
-                _counter = 0;
-                sleep 10 + random 5;
-                _sfac = 5 + random 5;
-                _size = [1, 1*_sfac, 2*_sfac];
-                _rubbing = (random 0.3);
-                _lifetime = _sfac;
-                [_endtime, _debug] spawn SS_dustdevil_Fnc;
-                if (_debug) then {hint "DustDevil spawned"};
-            };
-
-            // Kill dustdevil at end
-            if (time > (_endtime +50)) exitWith {
-                SS_dust_devil_part setDropInterval 0.01;
-                sleep 5;
-                SS_dust_devil_part setDropInterval 1;
-                sleep 3;
-                deleteVehicle SS_dust_devil_part;
-            };
-            sleep 0.15;
-        }; // end while
-    }; // end spawn
+    _pos = (getpos vehicle player);
+    _ddDensity = 0.2;
+    _ddalpha = 0.2;
+    _ddsize = [10,27];
+    _ddDensity = 0.25 - random 0.12;
+    _ddcolorCoef = 0.7 + random 0.2;
+    _ddlifetime = 5;
+    _ddwx = wind select 0;
+    _ddwy = wind select 1;
+    _ddvelocity = [_ddwx*2, _ddwy*2, -0.1];
+    _ddrotvel = 1;
+    _ddweight = 1;
+    _ddvol = 1;
+    _ddrubbing = 0.05;
+    _ddrelPos = [0, 20, 0];
+    _ddcolor = [1.0 * _ddcolorCoef, 0.9 * _ddcolorCoef, 0.7 * _ddcolorCoef];
+    if (daytime > 19.5 or daytime < 4.5) then {
+        // Night
+        _ddalpha = (0.2 + random 0.2);
+        _ddsize = [12,30];
+    } else {
+        // Day
+        _ddalpha = (0.7 + random 0.2);
+        _ddsize = [8,24];
+    };
+    SS_dust_devil_part = "#particlesource" createVehicleLocal _pos;
+    SS_dust_devil_part attachto [vehicle player];
+    SS_dust_devil_part setParticleParams [["A3\Data_F\ParticleEffects\Universal\universal.p3d", 16, 12, 2, 0], "", "Billboard", 1, _ddlifetime, _ddrelPos, _ddvelocity, _ddrotvel, _ddweight, _ddvol, _ddrubbing, _ddsize, [_ddcolor + [0], _ddcolor + [_ddalpha], _ddcolor + [0]], [1], 1, 0, "", "", (vehicle player), (random 180), true, 0];
+    // lifeTime, pos, Vel, rotVel, size, color, randDirPeriod, randDirInten, angle, bounceOnSurf
+    SS_dust_devil_part setParticleRandom [5, [0.25, 0.25, -3], [1, 1, 0], 1, 1, [0, 0, 0, 0.1], 0, 0.01];
+    SS_dust_devil_part setParticleCircle [30, [0, 0, 0]];
+    SS_dust_devil_part setDropInterval _ddDensity;
 };
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //// INTRO ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 if (_debug) then {hint "Start INTRO particles"; sleep 1;};
+
 SS_dust_particles = "#particlesource" createVehicleLocal (getpos vehicle player);
 SS_dust_particles attachto [vehicle player];
 // Pcircle: Radius, velocity
@@ -696,7 +647,6 @@ SS_dust_particles setParticleRandom [5, [0.25, 0.25, 0], [1, 1, 0], 1, 1, [0, 0,
 
 // Add INTRO particle loop - 20 secs -> alpha 0.5
 _future = time+20;
-SS_P_alpha = 0;
 while {time < _future} do {
     _wx = wind select 0;
     _wy = wind select 1;
@@ -714,7 +664,7 @@ while {time < _future} do {
     [["a3\data_f\ParticleEffects\Universal\Universal.p3d", 16, 12, 8, 0],
     "", "Billboard",
     1, //timerPeriod
-    10, // lifetime
+    5, // lifetime
     [0, 0, 0],
     _vel, // vel
     _rvel, //rotvel
@@ -735,65 +685,45 @@ while {time < _future} do {
     sleep 1;
     if (daytime > 19.5 or daytime < 4.5) then {
         // Night
-        SS_P_alpha = SS_P_alpha + 0.005;
+        SS_P_alpha = SS_P_alpha + 0.01;
     } else {
         // Day
-        SS_P_alpha = SS_P_alpha + 0.012;
+        SS_P_alpha = SS_P_alpha + 0.025;
     };
 };
 
 sleep 1;
 
-// Adjust Fog during main loop and set visibility rating
-SS_LowVis = false;
+// ADJUST FOG DURING MAIN LOOP AND SET LOWVIS CAPTIVE STATE
 [_endtime, _debug] spawn {
     params ["_endtime", "_debug"];
-    while {time <= _endtime} do {
-        _loopTime = 8;
-        _fogLvl = fog;
-        // Fog adjust
-        if (isServer) then {
-            if (_fogLvl > 0.9) then {
-                _fogLvl = 0.2 + random 0.2;
+    if (isServer) then {
+        while {time <= _endtime} do {
+            _loopTime = 8;
+            _fogLvl = fog;
+
+            // Fog adjust
+            if (_fogLvl >= 0.9) then {
+                _fogLvl = 0.4;
                 [4, _fogLvl] remoteExec ["setFog"];
                 sleep 4;
-                SS_LowVis = false;
-            } else {
-                _fogLvl = _fogLvl + random 0.1;
-                [4, _fogLvl] remoteExec ["setFog"];
             };
-            // Adjust visibility - used for captive setting
-            if (_fogLvl >0.6 && SS_P_alpha >0.6) then {SS_LowVis = true;};
+            if (_fogLvl < 0.9) then {
+                _fogLvl = _fogLvl + random 0.2;
+                [4, _fogLvl] remoteExec ["setFog"];
+                // Adjust captive state
+                if (_fogLvl >= 0.6) then {
+                    {if (!(captive _x)) then {_x setCaptive true;}} foreach (allUnits - allplayers);
+                } else {
+                    {if ((captive _x)) then {_x setCaptive false;}} foreach (allUnits - allplayers);
+                };
+            };
+
+            if (_debug) then {[format ["FOG %1", fog]] remoteexec ["hint",0]};
+            sleep _loopTime;
         };
-        if (_debug) then {hint format ["FOG %1", fog]};
-        sleep _loopTime;
     };
 };
-
-// Lobotomize AI during main loop
-_eSkill = 0;
-_wSkill = 0;
-_iskill = 0;
-_eSkill = [];
-_wSkill = [];
-_iSkill = 0;
-_eUnits = [];
-_wUnits = [];
-_iUnits = [];
-_eUnits = (allunits select {side _x == EAST && _x distance player <500})-allPlayers;
-_wUnits = (allunits select {side _x == WEST && _x distance player <500})-allPlayers;
-_iUnits = (allunits select {side _x == resistance && _x distance player <500})-allPlayers;
-{_eSkill pushBack (skill _x)} foreach _eUnits;
-{_wSkill pushBack (skill _x)} foreach _wUnits;
-{_iSkill pushBack (skill _x)} foreach _iUnits;
-if (count _eUnits >0) then {_eSkill = _eSkill call Bis_fnc_arithmeticmean};
-if (count _wUnits >0) then {_wSkill = _wSkill call Bis_fnc_arithmeticmean};
-if (count _iUnits >0) then {_iSkill = _iSkill call Bis_fnc_arithmeticmean};
-{_x setSkill 0} forEach (_wUnits + _eUnits + _iUnits);
-
-// Spawn Dust devil
-[_endtime, _debug] spawn SS_dustdevil_Fnc;
-if (_debug) then {hint "DustDevil spawned"};
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //// MAIN PARTICLE CC LOOP ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -801,8 +731,8 @@ if (_debug) then {hint "DustDevil spawned"};
 // Modify Color correction and particles after intro
 While {time <= _endtime} do {
     // brightness, contrast, offset, [Blend rgb a=factor (0 orig col, 1 blend col)] [Coloriz rgb a=satur (0 orig col, 1 B&W x col)] [Desat weights r g b 0]
-    _colcor1 ppEffectAdjust [0.9 + (overcast/10), 1, 0, [0.2, 0.15, 0.11, 0.2+random 0.2], [0.75 + random 0.05, 0.65 + random 0.05, 0.45 + random 0.05, 0.4 + random 0.3], [0.7, 0.7, 0.7, 0]];
-    _colcor1 ppEffectCommit 2 + (floor random 2);
+    SS_colcor1 ppEffectAdjust [0.9 + (overcast/10), 1, 0, [0.2, 0.15, 0.11, 0.2+random 0.2], [0.75 + random 0.05, 0.65 + random 0.05, 0.45 + random 0.05, 0.4 + random 0.3], [0.7, 0.7, 0.7, 0]];
+    SS_colcor1 ppEffectCommit 2 + (floor random 2);
 
     _wx = wind select 0;
     _wy = wind select 1;
@@ -811,22 +741,24 @@ While {time <= _endtime} do {
     if (daytime > 19.5 or daytime < 4.5) then {
         // Night
         SS_P_alpha = selectRandom [0.4,0.3,0.2];
+        publicVariable "SS_P_alpha";
     } else {
         // Day
         SS_P_alpha = selectRandom [0.9,0.8,0.7,0.6];
+        publicVariable "SS_P_alpha";
     };
-
     if (!alive SS_dust_particles) then {
         SS_dust_particles = "#particlesource" createVehicleLocal (getpos vehicle player);
         SS_dust_particles attachto [vehicle player];
         SS_dust_particles setParticleCircle [40, [0, 0, 0]];
         // lifeTime, pos, Vel, rotVel, size, color, randDirPeriod, randDirInten, angle, bounceOnSurf
         SS_dust_particles setParticleRandom [1, [1, 1, 0], [1, 1, 0], 1.5, 1, [0, 0, 0, 0.1], 0, 0.01];
+        [] spawn SS_dustdevil_Fnc;
     };
     SS_dust_particles attachto [vehicle player];
     SS_dust_particles setParticleParams [["a3\data_f\ParticleEffects\Universal\Universal.p3d", 16, 12, 8, 0], "", "Billboard",
     1, //timerPeriod
-    10, // lifetime
+    5, // lifetime
     [0, 0, 0],
     _vel, // vel
     _rvel, //rotvel
@@ -848,18 +780,12 @@ While {time <= _endtime} do {
     // Delete particles if time > 20 secs from endtime
     if (_rndAdjust <0.15 && time < (_endtime-20)) then {
         deleteVehicle SS_dust_particles;
+        deleteVehicle SS_dust_devil_part;
         if (_debug) then {hint "Particle deletion"};
     };
 
-    // Stop enemy firing in low visibility - see fog vis loop above
-    if (SS_LowVis) then {
-        if (_debug) then {hint "Captive"};
-        {if !(captive _x && local _x) then {_x setCaptive true}} foreach units group player;
-    } else {
-        if (_debug) then {hint "Not Captive"};
-        {if (captive _x && local _x) then {_x setCaptive false}} foreach units group player;
-    };
     sleep 1;
+
 }; // end while
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -869,16 +795,17 @@ if (_debug) then {hint "End Time - Fade out Sandstorm"; sleep 1;};
 SS_fadeout = true;
 _fadeEnd = time;
 SS_leaves_density = 0.1;
-SS_LowVis = false;
 
+// Clear dust devil particles
+deleteVehicle SS_dust_devil_part;
 //{if (typeOf _x == "#particlesource") then {deleteVehicle _x}} forEach (position (vehicle player) nearObjects 100);
 
 // Reset captive state
 [_debug] spawn {
     params ["_debug"];
-    sleep 5;
+    sleep 10;
     if (_debug) then {hint "Reset Captive state"};
-    {if (local _x && captive _x) then {_x setCaptive false; sleep 0.5;}} foreach units group player;
+    {if (local _x && (captive _x)) then {_x setCaptive false;}} foreach (allUnits - allplayers);
 };
 
 // Remove Fog
@@ -887,22 +814,23 @@ if (isServer) then {[45, 0] remoteExec ["setFog"]};
 
 // Fade color correction to normal
 if (_debug) then {hint "Fade Color correction to normal"; sleep 1;};
+
 // ppadj bright,contrast,offset,[col blend, col, col desat]
-_colcor1 ppEffectAdjust [1, 1, 0,[ 0, 0, 0, 0],[ 1, 1, 1, 1],[ 0, 0, 0, 0]];
-_colcor1 ppEffectCommit 80;
+SS_colcor1 ppEffectAdjust [1, 1, 0,[ 0, 0, 0, 0],[ 1, 1, 1, 1],[ 0, 0, 0, 0]];
+SS_colcor1 ppEffectCommit 50;
 
 // Reduce wind
-if (_debug) then {hint "Reduce wind"};
-[_origwind] spawn {
-    params ["_origwind"];
-    _WindVectorX = wind select 0;
-    _WindVectorY = wind select 1;
-    _factor = 1;
-    if (isServer) then {
+if (_debug) then {hint "Reduce wind"}; // aprox 20 secs
+if (isServer) then {
+    [_origwind] spawn {
+        params ["_origwind"];
+        _WindVectorX = wind select 0;
+        _WindVectorY = wind select 1;
+        _factor = 1;
         while {vectorMagnitude wind > vectorMagnitude _origwind} do {
             _factor = _factor + 0.2;
             setWind [(_WindVectorX/_factor), (_WindVectorY/_factor), true];
-            sleep 0.6;
+            sleep 0.5;
         };
     };
 };
@@ -911,18 +839,11 @@ if (_debug) then {hint "Reduce wind"};
 enableCamShake false;
 resetCamShake;
 
-sleep 12;
-
-// Reset averaged skills per side
-if (count _eUnits >0) then {{_x setskill _eSkill} foreach _eUnits};
-if (count _wUnits >0) then {{_x setskill _wSkill} foreach _wUnits};
-if (count _iUnits >0) then {{_x setskill _iSkill} foreach _iUnits};
-
-sleep 40;
+sleep 52;
 
 // Remove all particles
 if (_debug) then {hint "Remove dust and leaf particles"};
-{if (typeOf _x == "#particlesource") then {deleteVehicle _x}} forEach (position (vehicle player) nearObjects 100);
+{if (typeOf _x == "#particlesource") then {deleteVehicle _x}} forEach (position (vehicle player) nearObjects 500);
 
 deleteVehicle SS_dust_particles;
 deleteVehicle SS_dust_devil_part;
@@ -936,19 +857,19 @@ sleep 5;
 
 // Fade film grain
 if (_debug) then {hint "Remove film grain"};
-_hndlFg ppEffectAdjust [0.005, 1.25, 2.01, 0.75, 1.0, 0];
-_hndlFg ppEffectCommit 20;
+SS_hndlFGrain ppEffectAdjust [0.005, 1.25, 2.01, 0.75, 1.0, 0];
+SS_hndlFGrain ppEffectCommit 10;
 
-sleep 20;
+sleep 15;
 
 // Destroy film grain
-_hndlFg ppEffectEnable false;
-ppEffectDestroy _hndlFg;
+SS_hndlFGrain ppEffectEnable false;
+ppEffectDestroy SS_hndlFGrain;
 
 // Remove color correction
-//if (_debug) then {hint "Delete color correction"};
-//_colcor1 ppEffectEnable false;
-//ppEffectDestroy _colcor1;
+if (_debug) then {hint "Delete color correction"};
+SS_colcor1 ppEffectEnable false;
+ppEffectDestroy SS_colcor1;
 
 // Reset sound volume
 if (_debug) then {hint "Reset sound volume"};
@@ -960,12 +881,11 @@ if (isServer) then {5 setWindDir _origWindir};
 
 sleep 5;
 
-if (isServer) then {setWind [_origWindX, _origWindY, true]};
-
-// Reset time multiplier to mission init settings
-if (_debug) then {hint "Time multiplier reset"};
-if (_orig_timemultiplier != 1) then {
-    setTimeMultiplier _orig_timemultiplier;
+if (isServer) then {
+    setWind [_origWindX, _origWindY, true];
+    // Reset time multiplier to mission init settings
+    if (_debug) then {hint "Time multiplier reset"};
+    if (_orig_timemultiplier != 1) then {setTimeMultiplier _orig_timemultiplier;};
 };
 
 ROS_SS_Running = false;
